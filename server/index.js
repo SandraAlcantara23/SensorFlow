@@ -7,7 +7,9 @@ const cors = require('cors');            // Middleware para permitir conexiones 
 const bodyParser = require('body-parser'); // Middleware para parsear JSON en las peticiones
 
 const app = express();  // Creamos la aplicación Express
-const PORT = 3001;      // Puerto donde escuchará el servidor
+const PORT = process.env.PORT || 3001;
+
+    // Puerto donde escuchará el servidor
 
 
 // ============================================

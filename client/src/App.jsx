@@ -46,7 +46,7 @@ function App() {
     setError(null);
 
     try {
-      const respuesta = await fetch('http://localhost:3001/api/sensores');
+      const respuesta = await fetch('https://sensorflow-backend.onrender.com/api/sensores');
 
       if (!respuesta.ok) {
         throw new Error(`Error HTTP: ${respuesta.status}`);

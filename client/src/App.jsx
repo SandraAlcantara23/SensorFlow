@@ -3,58 +3,50 @@
 // FRONTEND: Dashboard Reactivo con React
 // ============================================
 
-// 🔹 IMPORTS: Hooks de React para manejar estado y efectos
 import { useState, useEffect } from 'react';
 import './App.css';
+
+// 🔥 URL del backend en producción (Render)
+const API_URL = "https://sensorflow-backend.onrender.com/api/sensores";
 
 function App() {
 
   // ============================================
-  // 1️⃣ ESTADO REACTIVO (Tema 1.1 - Definición)
+  // 1️⃣ ESTADO REACTIVO
   // ============================================
 
-  // Estado principal: lista de sensores
   const [sensores, setSensores] = useState([]);
 
-  // Estado para el formulario de nuevo sensor
   const [formulario, setFormulario] = useState({
     nombre: '',
     tipo: '',
     valor: ''
   });
 
-  // Estado para mensajes de carga/error
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
-
-  // Filtro por tipo
   const [filtroTipo, setFiltroTipo] = useState('todos');
 
-
   // ============================================
-  // 2️⃣ EFECTOS SECUNDARIOS (Ciclo de vida)
+  // 2️⃣ EFECTOS
   // ============================================
 
   useEffect(() => {
     cargarSensores();
-  }, []); // Solo al montar el componente
+  }, []);
 
-
-  // Función para obtener datos del backend
   const cargarSensores = async () => {
     setCargando(true);
     setError(null);
 
     try {
-      const respuesta = await fetch('https://sensorflow-backend.onrender.com/api/sensores');
+      const respuesta = await fetch(API_URL);
 
       if (!respuesta.ok) {
         throw new Error(`Error HTTP: ${respuesta.status}`);
       }
 
       const datos = await respuesta.json();
-
-      // Reactividad: al cambiar el estado, la UI se actualiza sola
       setSensores(datos);
 
     } catch (err) {
@@ -65,8 +57,10 @@ function App() {
     }
   };
 
+  // ============================================
+  // 3️⃣ MANEJO DE FORMULARIO
+  // ============================================
 
-  // 🔹 Manejar cambios en los inputs del formulario
   const manejarCambio = (e) => {
     setFormulario({
       ...formulario,
@@ -74,8 +68,6 @@ function App() {
     });
   };
 
-
-  // 🔹 Agregar nuevo sensor (POST)
   const agregarSensor = async (e) => {
     e.preventDefault();
 
@@ -85,11 +77,9 @@ function App() {
     }
 
     try {
-      const respuesta = await fetch('http://localhost:3001/api/sensores', {
+      const respuesta = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formulario)
       });
 
@@ -97,10 +87,7 @@ function App() {
         throw new Error("Error al crear sensor");
       }
 
-      // Limpiar formulario
       setFormulario({ nombre: '', tipo: '', valor: '' });
-
-      // Recargar lista
       cargarSensores();
 
     } catch (err) {
@@ -109,8 +96,6 @@ function App() {
     }
   };
 
-
-  // 🔹 Eliminar sensor (DELETE)
   const eliminarSensor = async (id) => {
 
     const sensor = sensores.find(s => s.id === id);
@@ -120,7 +105,7 @@ function App() {
     }
 
     try {
-      await fetch(`http://localhost:3001/api/sensores/${id}`, {
+      await fetch(`${API_URL}/${id}`, {
         method: 'DELETE'
       });
 
@@ -132,16 +117,13 @@ function App() {
     }
   };
 
-
-  // Sensores filtrados (reactividad)
   const sensoresFiltrados =
     filtroTipo === 'todos'
       ? sensores
       : sensores.filter(s => s.tipo === filtroTipo);
 
-
   // ============================================
-  // 3️⃣ VISTA DECLARATIVA
+  // 4️⃣ VISTA
   // ============================================
 
   return (
@@ -154,7 +136,6 @@ function App() {
         </p>
       </header>
 
-      {/* --- FORMULARIO --- */}
       <form onSubmit={agregarSensor} className="formulario">
 
         <input
@@ -163,7 +144,6 @@ function App() {
           value={formulario.nombre}
           onChange={manejarCambio}
           required
-          aria-label="Nombre del sensor"
         />
 
         <select
@@ -171,7 +151,6 @@ function App() {
           value={formulario.tipo}
           onChange={manejarCambio}
           required
-          aria-label="Tipo de sensor"
         >
           <option value="">Tipo...</option>
           <option value="Temperatura">🌡️ Temperatura</option>
@@ -186,7 +165,6 @@ function App() {
           value={formulario.valor}
           onChange={manejarCambio}
           required
-          aria-label="Valor medido"
         />
 
         <button type="submit" disabled={cargando}>
@@ -195,11 +173,8 @@ function App() {
 
       </form>
 
-
-      {/* --- FILTROS --- */}
       <div className="filtros">
         <label>Filtrar por tipo: </label>
-
         <select
           value={filtroTipo}
           onChange={(e) => setFiltroTipo(e.target.value)}
@@ -211,8 +186,6 @@ function App() {
         </select>
       </div>
 
-
-      {/* --- MENSAJES --- */}
       {error && <div className="error">⚠️ {error}</div>}
 
       {cargando && !sensores.length && (
@@ -221,21 +194,12 @@ function App() {
         </div>
       )}
 
-
-      {/* --- LISTA DE SENSORES --- */}
       <div className="grid-sensores">
-
         {sensoresFiltrados.map((sensor) => (
-
           <article key={sensor.id} className="tarjeta-sensor">
-
             <h3>{sensor.nombre}</h3>
-
-            <p className="tipo">
-              🏷️ {sensor.tipo}
-            </p>
-
-            <p className="valor">
+            <p>🏷️ {sensor.tipo}</p>
+            <p>
               📊 {sensor.valor}{' '}
               {sensor.tipo === 'Temperatura'
                 ? '°C'
@@ -243,23 +207,16 @@ function App() {
                   ? '%'
                   : 'lux'}
             </p>
-
             <button
               onClick={() => eliminarSensor(sensor.id)}
               className="btn-eliminar"
-              aria-label={`Eliminar ${sensor.nombre}`}
             >
               🗑️ Eliminar
             </button>
-
           </article>
-
         ))}
-
       </div>
 
-
-      {/* --- MENSAJE VACÍO --- */}
       {sensoresFiltrados.length === 0 && !cargando && (
         <p className="vacio">
           {filtroTipo === 'todos'
